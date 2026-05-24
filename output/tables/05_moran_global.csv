@@ -1,0 +1,5 @@
+"variable","morans_i","p_value","n_simulations"
+"Aggregate exposure",0.35380348242673,0.001,1000
+"Manufacturing contribution",0.41231341575272,0.001,1000
+"Agriculture contribution",0.254486016523156,0.001,1000
+"Mining contribution",0.380374066553937,0.001,1000

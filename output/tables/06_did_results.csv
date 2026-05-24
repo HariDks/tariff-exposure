@@ -1,0 +1,5 @@
+"model","term","estimate","std.error","p.value"
+"Post-April only","exposure_pp:post_apr",-0.069286036322656,0.0405461108523964,0.0880038994452384
+"Post-August only","exposure_pp:post_aug",-0.213557370303887,0.0494761082493538,1.85665778209168e-05
+"Both events","exposure_pp:post_apr",0.111811933133383,0.0532145609427663,0.036046155858586
+"Both events","exposure_pp:post_aug",-0.301829949093397,0.0653229618725299,4.69130474726914e-06

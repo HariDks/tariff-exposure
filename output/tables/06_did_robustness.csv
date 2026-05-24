@@ -1,0 +1,8 @@
+"model","term","estimate","std.error","p.value"
+"Baseline (from R/12)","exposure_pp:post_apr",0.0876151071383561,0.0433305412066827,0.0436469874829884
+"Baseline (from R/12)","exposure_pp:post_aug",-0.291248871220303,0.0492887134519596,5.96259144274401e-09
+"(1) Weighted by labor force","exposure_pp:post_apr",-0.0668868335658241,0.101516933900342,0.510246273769525
+"(1) Weighted by labor force","exposure_pp:post_aug",-0.437167681329403,0.0927245834959245,3.05544133739995e-06
+"(2) Demographic-adjusted","exposure_pp:post_apr",0.087615107138356,0.0433351604211522,0.0436693320836314
+"(2) Demographic-adjusted","exposure_pp:post_aug",-0.259594700317517,0.0518482323933454,7.41373773319407e-07
+"(3) Placebo (fake Jan 2025 date, pre-treatment sample only)","exposure_pp:post_placebo",0.107802630811701,0.070703040400669,0.127889440958652
