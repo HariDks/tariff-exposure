@@ -52,7 +52,7 @@ This paper asks how the 2025 U.S. tariff regime is distributed geographically an
 
 # Introduction
 
-The 2025 U.S. tariff regime moved in three steps. The Trump administration announced new tariffs in April 2025. They took effect in August 2025. In February 2026 the Supreme Court decided *Learning Resources, Inc. v. Trump* and partially restricted the executive's tariff authority. Because tariffs are charged at the product level (using Harmonized System codes) but economic activity is spread across places, the policy lands as a spatial labor market shock. Counties that specialize in tariffed industries face larger rate increases than counties dominated by services or other non-tradable activities.
+The 2025 U.S. tariff regime moved in three steps. The Trump administration announced new tariffs in April 2025. They took effect in August 2025. In February 2026 the Supreme Court ruled in *Learning Resources, Inc. v. Trump*, a challenge brought by an educational supplies company, and partially restricted the executive's authority to impose them. Because tariffs are charged at the product level (using Harmonized System codes) but economic activity is spread across places, the policy lands as a spatial labor market shock. Counties that specialize in tariffed industries face larger rate increases than counties dominated by services or other non-tradable activities.
 
 This report builds a county-level tariff exposure index that follows the shift-share approach from @bartik1991, which is the workhorse method in modern trade economics [@autor2013china]. The analysis is done at the commuting-zone level for the main results, because labor markets cross county boundaries [@tolbert1996]. I then re-run the cross-section at the county level as a robustness check on the choice of spatial unit, which is what the Modifiable Areal Unit Problem (MAUP) literature recommends.
 
@@ -81,9 +81,9 @@ kable(data_sources)
 
 The exposure index for each commuting zone *j* is the employment-share-weighted change in the effective tariff rate:
 
-$$\text{Exposure}_j = \sum_{i \in I} \frac{\text{Emp}_{ij}}{\text{Emp}_j} \cdot \Delta\text{Tariff}_i$$
+$$\text{Exposure}_j = \sum_{i} \frac{\text{Emp}_{ij}}{\text{Emp}_j} \cdot \Delta\text{Tariff}_i$$
 
-where *I* indexes NAICS 2-digit sectors. Employment shares come from QCEW 2024 Q4, which is the last quarter before the tariffs were announced. Sector-level effective tariff changes are computed by taking the import-value-weighted average of HS-6 effective rates (Calculated Duties divided by CIF Import Value) from PIIE and USITC. The pre-period is 2025 Q1 and the post-period is 2026 Q1, so the comparison is Q1 to Q1 to avoid seasonality. The code below loads all the processed inputs and assembles the analysis dataset.
+where *i* indexes NAICS 2-digit sectors. Employment shares come from QCEW 2024 Q4, which is the last quarter before the tariffs were announced. Sector-level effective tariff changes are computed by taking the import-value-weighted average of HS-6 effective rates (Calculated Duties divided by CIF Import Value) from PIIE and USITC. The pre-period is 2025 Q1 and the post-period is 2026 Q1, so the comparison is Q1 to Q1 to avoid seasonality. The code below loads all the processed inputs and assembles the analysis dataset.
 
 ```{r load-data}
 #| label: load-data
