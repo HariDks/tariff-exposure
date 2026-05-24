@@ -1,7 +1,7 @@
 ---
 title: "County-Level Tariff Exposure and Labor Market Outcomes"
 subtitle: "A spatial analysis of the 2025 U.S. trade regime"
-author: "Hari Dharshini K. S."
+author: "Hari Dharshini Koundinya Swaminathen"
 date: today
 format:
   html:
