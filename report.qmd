@@ -48,15 +48,15 @@ library(RColorBrewer)
 
 # Abstract {.unnumbered}
 
-I construct a county-level shift-share index of exposure to the 2025 U.S. tariff regime, combining BLS Quarterly Census of Employment and Wages (QCEW) employment data with effective tariff rate changes computed from USITC HS-6 customs records (via the PIIE Working Paper 25-13 replication file). I ask two questions. First, **how is exposure distributed geographically across commuting zones?** Sharp clustering emerges in the industrial Midwest manufacturing belt (global Moran's I = 0.354, p < 0.001), with 60 hot-spot commuting zones identified by Local Moran's I (LISA). Second, **do high-exposure commuting zones experience differential labor market outcomes after the April 2025 announcement and August 2025 implementation?** Cross-sectional regression on pre-tariff (ACS 2019–2023) unemployment finds no significant relationship — a result that functions as a balance test for the panel design. A two-way fixed effects difference-in-differences on monthly BLS LAUS unemployment (Jan 2024 – Feb 2026) finds a modest unemployment uptick during the announcement window (+0.11 pp per pp of exposure, *p* = 0.04), reversing to a significant decrease after implementation (−0.30 pp per pp, *p* < 0.001). The post-implementation effect survives three robustness checks (labor-force weighting, demographic adjustment, placebo test) and is corroborated by a county-level replication. The pattern is consistent with the protective effect of tariff barriers on domestic manufacturing employment in the short run.
+This paper asks how the 2025 U.S. tariff regime is distributed geographically and whether high-exposure areas have seen different labor market outcomes. I build a county-level tariff exposure index using BLS Quarterly Census of Employment and Wages (QCEW) data and effective tariff rates computed from USITC HS-6 customs records, accessed through the PIIE Working Paper 25-13 replication file. The geography is clustered: the industrial Midwest forms a hot spot, with a global Moran's I of 0.354 (p < 0.001) and 60 hot-spot commuting zones identified by LISA. A cross-sectional spatial regression on pre-tariff ACS unemployment finds no significant relationship between exposure and unemployment, which serves as a balance test for the panel design that follows. A two-way fixed effects difference-in-differences on monthly BLS LAUS data from January 2024 through February 2026 finds a small unemployment increase during the April to August 2025 announcement window (+0.11 percentage points per pp of exposure, p = 0.04). After the tariffs took effect in August 2025, the sign flips and the post-implementation effect is −0.30 pp per pp (p < 0.001). The post-implementation result survives three robustness checks (labor-force weighting, demographic adjustment, and a placebo test) and holds up at the county level too. The pattern fits the standard protectionist story: when imports become more expensive, manufacturing-heavy regions absorb the resulting demand and unemployment falls there in the short run.
 
 # Introduction
 
-In April 2025 the U.S. announced a sweeping new tariff regime; the tariffs took effect in August 2025; and in February 2026 the Supreme Court decided *Learning Resources, Inc. v. Trump*, partially constraining the executive's tariff authority. Because tariffs are administered at the product level (Harmonized System codes) while economic activity is distributed at the geographic level, the policy translates into a spatial labor-market shock — local economies dominated by tariffed industries face larger effective rate changes than those dominated by services or non-tariffed activities.
+The 2025 U.S. tariff regime moved in three steps. The Trump administration announced new tariffs in April 2025. They took effect in August 2025. In February 2026 the Supreme Court decided *Learning Resources, Inc. v. Trump* and partially restricted the executive's tariff authority. Because tariffs are charged at the product level (using Harmonized System codes) but economic activity is spread across places, the policy lands as a spatial labor market shock. Counties that specialize in tariffed industries face larger rate increases than counties dominated by services or other non-tradable activities.
 
-This report builds a county-level **tariff exposure index** following the Bartik-style shift-share methodology [@bartik1991] standard in modern trade economics [@autor2013china], then asks whether geographic variation in exposure predicts labor-market outcomes. The analysis is conducted primarily at the **commuting-zone level** because labor markets cross county boundaries, and re-validated at the county level as a robustness check on the unit of analysis (the Modifiable Areal Unit Problem).
+This report builds a county-level tariff exposure index that follows the shift-share approach from @bartik1991, which is the workhorse method in modern trade economics [@autor2013china]. The analysis is done at the commuting-zone level for the main results, because labor markets cross county boundaries [@tolbert1996]. I then re-run the cross-section at the county level as a robustness check on the choice of spatial unit, which is what the Modifiable Areal Unit Problem (MAUP) literature recommends.
 
-The empirical strategy proceeds in two stages. First, a **cross-sectional spatial regression** of pre-tariff unemployment on exposure tests whether high-exposure regions differed from low-exposure regions before the policy took effect — a balance test for the panel design. Second, a **two-way fixed effects difference-in-differences** on monthly unemployment from January 2024 through February 2026 estimates the differential effect of the announcement and implementation events on local labor markets.
+The empirical strategy has two stages. The first stage is a cross-sectional spatial regression of pre-tariff unemployment on exposure. The point is to check whether high-exposure regions were already different from low-exposure regions before the policy took effect. The second stage is a panel difference-in-differences on monthly unemployment from January 2024 through February 2026, which estimates whether unemployment in high-exposure regions diverged from unemployment in low-exposure regions after the announcement and after implementation.
 
 # Data
 
@@ -79,11 +79,11 @@ kable(data_sources)
 
 ## Building the exposure index
 
-For each commuting zone *j*, exposure is the employment-share-weighted change in effective tariff rate:
+The exposure index for each commuting zone *j* is the employment-share-weighted change in the effective tariff rate:
 
 $$\text{Exposure}_j = \sum_{i \in I} \frac{\text{Emp}_{ij}}{\text{Emp}_j} \cdot \Delta\text{Tariff}_i$$
 
-where *I* indexes NAICS 2-digit sectors. Employment shares come from QCEW 2024 Q4 (pre-tariff baseline). Sector-level effective tariff changes are computed by import-value-weighted aggregation of HS-6 effective rates (Calculated Duties ÷ CIF Import Value) from PIIE/USITC, with the pre-period 2025 Q1 and post-period 2026 Q1. The code below loads all processed inputs and assembles the analysis dataset:
+where *I* indexes NAICS 2-digit sectors. Employment shares come from QCEW 2024 Q4, which is the last quarter before the tariffs were announced. Sector-level effective tariff changes are computed by taking the import-value-weighted average of HS-6 effective rates (Calculated Duties divided by CIF Import Value) from PIIE and USITC. The pre-period is 2025 Q1 and the post-period is 2026 Q1, so the comparison is Q1 to Q1 to avoid seasonality. The code below loads all the processed inputs and assembles the analysis dataset.
 
 ```{r load-data}
 #| label: load-data
@@ -103,7 +103,7 @@ cat("CZs with exposure values: ", nrow(cz_expo), "\n")
 cat("CZ-month panel rows:      ", nrow(cz_panel), "\n")
 ```
 
-The HS → NAICS mapping uses the standard chapter correspondence; at NAICS-2 aggregation this produces sector assignments equivalent to rolling up the Census HS-10 → NAICS-6 concordance for the vast majority of HS codes:
+The HS to NAICS mapping uses the standard chapter correspondence. At the NAICS-2 sector level used here, this rule produces the same assignment as the Census HS-10 to NAICS-6 concordance for almost all HS codes, so the simplification is defensible.
 
 ```{r hs-naics-rule}
 #| label: hs-naics-rule
@@ -123,13 +123,13 @@ hs_to_naics <- function(hts6) {
 
 ## Why commuting zones
 
-The primary analysis is conducted at the commuting-zone level (n = 564) rather than the county level (n = 3,109). Counties are administrative boundaries; workers who live in one county but commute to another have their tariff exposure mismeasured at county level. Commuting zones [@tolbert1996] group counties whose residents and workplaces are tied by commuting flows, so the within-CZ workplace-vs-residence distinction largely stops mattering. Additionally, BLS suppresses sector-level employment in small counties (median county sector coverage = 85.5% in our 2024 Q4 extract); CZ aggregation reduces this to 89.6%.
+The main analysis is done at the commuting-zone level (n = 564) rather than the county level (n = 3,109). Counties are administrative boundaries. Workers who live in one county but commute to a neighboring county for work have their tariff exposure mismeasured at the county level. Commuting zones group counties that are tied together by commuting flows, so the workplace-versus-residence problem mostly goes away within a CZ. There is a second reason too. BLS suppresses sector-level employment counts in small counties to protect employer confidentiality. In the 2024 Q4 QCEW extract, the median county only has 85.5% of its sector employment observable. After aggregating to CZs, the median coverage rises to 89.6%.
 
-A county-level replication of the cross-sectional regression is reported as a robustness check in @sec-county-robustness.
+The county-level version of the cross-sectional regression is reported as a robustness check in @sec-county-robustness.
 
 ## Spatial autocorrelation
 
-Spatial data violates the independence assumption of classical statistics — observations near each other tend to be correlated [@tobler1970]. I therefore test for spatial dependence using Global Moran's I with row-standardised Queen-contiguity spatial weights and Monte Carlo permutation inference (999 permutations). Local clustering is identified using Local Moran's I [LISA; @anselin1995]. A bivariate Moran's I is also computed to test whether the geography of exposure overlaps spatially with the geography of unemployment.
+Spatial data breaks the independence assumption that classical statistics relies on. Observations close in space tend to be correlated [@tobler1970]. I test for this with the global Moran's I statistic using row-standardized Queen-contiguity spatial weights, with Monte Carlo permutation (999 permutations) for inference. To find where the clustering actually is, I compute the local version, LISA [@anselin1995]. I also compute a bivariate Moran's I to check whether the geography of exposure overlaps with the geography of unemployment.
 
 ```{r build-W}
 #| label: build-W
@@ -147,7 +147,7 @@ cat("CZs in spatial weights matrix:", nrow(cz),
 
 ## Cross-sectional spatial regression
 
-I estimate three nested models — OLS, spatial lag (SAR, with ρ on a spatially-lagged dependent variable), and spatial error (SEM, with λ on a spatially-correlated error term) — then choose by AIC, following the standard Anselin decision rule:
+I estimate three nested models. The first is ordinary least squares. The second is the spatial lag model (SAR), which adds a spatially-lagged dependent variable with coefficient ρ. The third is the spatial error model (SEM), which lets the error term be spatially correlated with coefficient λ. I pick the best model by AIC, following the standard Anselin decision rule. The regression equation is:
 
 $$\text{Unemp}_j = \beta_0 + \beta_1 \text{Exposure}_j + \beta_2 \text{College}_j + \beta_3 \text{White}_j + \beta_4 \log(\text{Income}_j) + \varepsilon_j$$
 
@@ -157,13 +157,13 @@ The DiD specification is two-way fixed effects with cluster-robust standard erro
 
 $$\text{Unemp}_{jt} = \alpha_j + \gamma_t + \beta_1 (\text{Exposure}_j \times \text{Post}^{\text{Apr}}_t) + \beta_2 (\text{Exposure}_j \times \text{Post}^{\text{Aug}}_t) + \varepsilon_{jt}$$
 
-$\alpha_j$ absorbs all time-invariant CZ characteristics; $\gamma_t$ absorbs all national time trends. Identification rests on the parallel-trends assumption, tested visually using the pre-treatment period (Jan 2024 – Mar 2025). October 2025 (only 78 of 3,221 counties reported in source) and March 2026 (3 counties, preliminary release) are dropped from the panel; the remaining 25 months yield 14,950 CZ-month observations.
+The CZ fixed effects $\alpha_j$ absorb everything that is constant over time within a CZ, like its industry mix and demographic structure. The month fixed effects $\gamma_t$ absorb everything that hits the country at the same time, like the national business cycle and seasonality. The identifying assumption is parallel trends, which I check visually using the pre-treatment period from January 2024 through March 2025. Two months are dropped from the panel. October 2025 only has 78 of 3,221 counties reported in the BLS source file, a real data gap. March 2026 has only 3 counties, since it was the preliminary release. The remaining 25 months give 14,950 CZ-month observations.
 
 # Results
 
 ## Geography of tariff exposure
 
-The NAICS-sector tariff schedule (@tbl-naics-schedule) shows manufacturing absorbing the largest effective rate increase (+5.9 pp), agriculture a meaningful increase (+3.7 pp), and mining essentially unchanged (−0.1 pp). Services, retail, and other non-traded sectors are unaffected by construction.
+The sector tariff schedule (@tbl-naics-schedule) shows manufacturing taking the largest effective rate increase at +5.9 pp. Agriculture takes a +3.7 pp increase. Mining is roughly flat at −0.1 pp, which is consistent with the steel and aluminum exemptions that were granted. Services, retail, and other non-tradable sectors get zero by construction because the goods they produce don't cross customs.
 
 ```{r tbl-naics-schedule}
 #| label: tbl-naics-schedule
@@ -182,15 +182,15 @@ naics_tar |>
   kable()
 ```
 
-Translating this national schedule into geographic exposure via local employment shares (@fig-main-exposure) produces a sharply clustered pattern: the industrial Midwest, Carolinas, and Southeast manufacturing corridor show high exposure; coastal metros and the Mountain West are low-exposure. The maximum CZ exposure is 2.72 pp; the median is 0.63 pp.
+Translating this national schedule into geographic exposure through the local employment shares (@fig-main-exposure) produces a clustered pattern. The industrial Midwest, the Carolinas, and the Southeast manufacturing corridor have high exposure. Coastal metros and the Mountain West have low exposure. The maximum CZ exposure is 2.72 pp and the median is 0.63 pp.
 
 ![Tariff exposure across U.S. commuting zones, Jenks classification with 6 classes.](output/figures/03b_main_exposure.png){#fig-main-exposure}
 
-Choice of classification matters substantively for the visual story (@fig-classification): equal-interval bins compress the long right tail; quantile bins create false uniformity; Jenks natural breaks finds the empirical cluster boundaries. The same Rust-Belt pattern is visible across all three methods, indicating a real spatial pattern rather than a visualisation artifact.
+The choice of classification method changes the visual story (@fig-classification). Equal-interval bins compress the long right tail of the distribution, so almost everything looks low-exposure. Quantile bins force one-sixth of CZs into each bucket, which creates the false impression that exposure is uniform across the country. Jenks natural breaks finds the empirical cluster boundaries in the data. The same Rust Belt pattern is visible in all three methods, which tells us the spatial pattern is real and not an artifact of the choice of bins.
 
 ![Three classifications of the same exposure data, side by side.](output/figures/03a_classification_comparison.png){#fig-classification}
 
-Sector decomposition (@fig-dominant-sector) shows manufacturing dominates 538 of 564 CZs while agriculture dominates 60 — primarily in the Great Plains corn belt and food-processing centres.
+The sector decomposition (@fig-dominant-sector) shows manufacturing is the dominant exposure driver in 538 of the 564 CZs. Agriculture is dominant in 60 CZs, mostly in the Great Plains corn belt and at food-processing centers like Storm Lake, IA and Dodge City, KS.
 
 ![Dominant tariffed sector by CZ.](output/figures/03c_dominant_sector.png){#fig-dominant-sector}
 
@@ -219,7 +219,7 @@ global_morans <- bind_rows(
 kable(global_morans, caption = "Global Moran's I, Queen-contiguity W, 999 MC permutations.")
 ```
 
-All four exposure measures cluster strongly and significantly. The aggregate index returns *I* = 0.354 (*p* < 0.001), with manufacturing most strongly clustered (*I* = 0.412).
+All four exposure measures cluster strongly and significantly. The aggregate index has *I* = 0.354 (*p* < 0.001), and manufacturing is the most strongly clustered component at *I* = 0.412.
 
 ```{r fig-moran-out}
 #| label: fig-moran-out
@@ -227,7 +227,7 @@ All four exposure measures cluster strongly and significantly. The aggregate ind
 knitr::include_graphics(here("output", "figures", "05a_moran_scatter.png"))
 ```
 
-Local Moran's I (LISA) classifies each CZ as a hot spot (HH), cold spot (LL), or outlier (HL / LH) based on its own value relative to its neighbors. The map below localises the clustering: 60 hot-spot CZs in the industrial Midwest, 103 cold-spot CZs in the West and Plains, and 21 outliers — most prominently the large metros inside the Rust Belt (Chicago, Indianapolis, Cleveland) whose diversified service economies dilute their own exposure relative to factory-heavy surrounding CZs.
+Local Moran's I (LISA) classifies each CZ as a hot spot (HH), cold spot (LL), or outlier (HL or LH) based on its own value relative to its neighbors' values. The map below shows where the clustering is. There are 60 hot-spot CZs in the industrial Midwest, 103 cold-spot CZs in the West and the Plains, and 21 outlier CZs. The most interesting outliers are the large metros inside the Rust Belt (Chicago, Indianapolis, Cleveland). Their diversified service economies dilute their own exposure value, so they appear as low-exposure islands inside the high-exposure manufacturing belt.
 
 ```{r fig-lisa-out}
 #| label: fig-lisa-out
@@ -235,7 +235,7 @@ Local Moran's I (LISA) classifies each CZ as a hot spot (HH), cold spot (LL), or
 knitr::include_graphics(here("output", "figures", "05b_lisa_clusters.png"))
 ```
 
-Bivariate Moran's I, pairing exposure at each CZ with mean unemployment at its neighbors, returns *I* = −0.081 (*p* = 0.005). The negative sign — small but significant — indicates that **high-exposure CZs are not surrounded by high-unemployment neighbors**: the Rust Belt sits adjacent to otherwise tight labor markets, not chronically depressed ones.
+The bivariate Moran's I, which pairs each CZ's exposure with the average unemployment at its neighbors, comes out at *I* = −0.081 (*p* = 0.005). The sign is negative, small, and significant. What this tells us is that high-exposure CZs are not surrounded by high-unemployment neighbors. The Rust Belt manufacturing belt sits next to regions with otherwise tight labor markets, not next to chronically depressed regions.
 
 ```{r bv-moran-inline}
 #| label: bv-moran-inline
@@ -308,11 +308,11 @@ kable(sem_coef, caption = "Spatial Error Model coefficients (CZ level).")
 cat(sprintf("λ (spatial error) = %.3f, p < 2e-16\n", sem$lambda))
 ```
 
-**Tariff exposure is not significantly related to pre-tariff unemployment after controls** (*β* = −0.20, *p* = 0.13). This null is substantively important: it means high-exposure and low-exposure CZs were *statistically indistinguishable* in their pre-tariff labor markets after controlling for income, education, and race. This functions as the **balance test for the panel design** that follows: with no pre-existing differential in unemployment levels, any post-treatment divergence is more cleanly attributable to the tariff treatment.
+Tariff exposure is not significantly related to pre-tariff unemployment once the controls are in (*β* = −0.20, *p* = 0.13). The null result matters. It says that high-exposure and low-exposure CZs were statistically indistinguishable in their pre-tariff labor markets, conditional on income, education, and race. That is the balance test for the panel design that follows. If high-exposure and low-exposure CZs looked the same before treatment, then any divergence after treatment is more cleanly attributable to the tariff itself rather than to pre-existing differences between the two groups.
 
 ## Difference-in-differences
 
-Parallel-trends inspection (@fig-parallel) shows the four exposure quartiles tracking tightly together (within ~0.5 pp, sharing the same seasonal pattern) throughout Jan 2024 – Mar 2025. Lines diverge after the August 2025 implementation, with the highest-exposure quartile ending at *lower* unemployment than Q3.
+The parallel-trends check (@fig-parallel) shows the four exposure quartiles tracking closely throughout January 2024 to March 2025. The four lines stay within about 0.5 pp of each other and share the same seasonal pattern. After the August 2025 implementation, the lines start to spread apart, and the highest-exposure quartile ends up at lower unemployment than the third quartile.
 
 ![Parallel-trends check: mean unemployment by tariff exposure quartile, monthly.](output/figures/06a_parallel_trends.png){#fig-parallel}
 
@@ -345,15 +345,15 @@ etable(did_apr, did_aug, did_both,
        fitstat = c("n", "r2", "wr2"))
 ```
 
-During April–July 2025 (announced but not yet in effect), high-exposure CZs experienced **+0.11 pp unemployment per pp of exposure** (*p* = 0.04). After implementation in August 2025, the *additional* effect was **−0.30 pp per pp** (*p* < 0.001), so the net post-implementation effect is −0.19 pp per pp. For a typical high-exposure CZ (exposure ≈ 2.0 pp), the model implies ~0.4 pp lower unemployment than would have obtained absent treatment.
+During the April to July 2025 window, when tariffs had been announced but were not yet in effect, high-exposure CZs experienced +0.11 pp of unemployment per pp of exposure (*p* = 0.04). After implementation in August 2025, the additional effect was −0.30 pp per pp (*p* < 0.001). The net post-implementation effect is +0.11 − 0.30 = −0.19 pp per pp. A typical high-exposure CZ has an exposure of roughly 2.0 pp, which implies the model predicts about 0.4 pp lower unemployment than it would otherwise have had.
 
-The event study (@fig-event-study) corroborates: pre-treatment coefficients are statistically indistinguishable from zero (validating parallel trends), the announcement window shows a modest positive bump, and the post-implementation period shows a sustained negative effect through February 2026.
+The event study (@fig-event-study) supports the same story. The pre-treatment coefficients sit around zero with confidence intervals that include zero, which validates parallel trends. The announcement window shows a small positive bump. The post-implementation period shows a sustained negative effect that lasts through February 2026.
 
 ![Event study: monthly differential unemployment effect per pp of tariff exposure.](output/figures/06b_event_study.png){#fig-event-study}
 
 ### Robustness of the DiD result
 
-Three robustness checks: (1) labor-force weighting, (2) demographic-adjusted, (3) placebo with fake January 2025 treatment date (sample restricted to pre-real-treatment so the real treatment can't contaminate the placebo):
+I run three robustness checks on the DiD result. The first is labor-force weighting, which lets each worker count equally rather than each CZ counting equally. The second is a demographic-adjusted version that includes post-treatment interactions with education, race, and income. The third is a placebo test using a fake January 2025 treatment date, with the sample restricted to the pre-real-treatment period so the actual treatment cannot contaminate the placebo.
 
 ```{r did-robust-inline}
 #| label: did-robust-inline
@@ -388,11 +388,11 @@ etable(did_both, weighted_did, adjusted_did, placebo_did,
        fitstat = c("n", "r2"))
 ```
 
-The post-August protective effect survives all three checks (and **strengthens** under labor-force weighting, from −0.29 to −0.44). The fragile post-April announcement-window effect disappears under labor-force weighting, indicating it was driven by small CZs rather than the bulk of the workforce. The placebo test returns a non-significant coefficient (*p* = 0.13).
+The post-August protective effect survives all three checks. Under labor-force weighting it actually gets stronger, moving from −0.29 to −0.44. The smaller post-April announcement effect disappears under labor-force weighting, which means it was being driven by small CZs and not by the bulk of the workforce. The placebo test returns a coefficient of +0.11 with *p* = 0.13, which is not statistically significant at conventional thresholds.
 
 ### County-level robustness {#sec-county-robustness}
 
-Re-estimating the full Phase 6 cross-sectional pipeline at the county level (n = 3,102) confirms the substantive findings. The Spatial Error Model wins at both spatial units; the exposure coefficient is negative at both (county: −0.11, *p* = 0.047; CZ: −0.20, *p* = 0.13), with the county-level estimate reaching conventional significance due to the larger sample. Income, race, and education coefficients are remarkably similar across the two specifications, indicating the structural relationship between demographics and unemployment is invariant to choice of spatial unit. The spatial parameter λ is somewhat smaller at county level (0.51 vs 0.68) — a standard MAUP effect of finer geographic resolution dampening cross-unit autocorrelation.
+I re-estimate the cross-sectional pipeline at the county level (n = 3,102) to check whether the choice of spatial unit drives the results. The Spatial Error Model wins at both spatial units. The exposure coefficient is negative at both (county: −0.11, *p* = 0.047; CZ: −0.20, *p* = 0.13). The county-level estimate reaches conventional significance because the larger sample gives more statistical power. The income, race, and education coefficients are nearly identical across the two specifications, which says the structural relationship between demographics and unemployment does not depend on the choice of spatial unit. The spatial parameter λ is somewhat smaller at the county level (0.51 versus 0.68 at the CZ level), which is a standard MAUP effect where finer spatial resolution dampens cross-unit autocorrelation.
 
 ```{r tbl-cz-vs-county}
 #| label: tbl-cz-vs-county
@@ -408,7 +408,7 @@ read_csv(here("output", "tables", "07_cz_vs_county_comparison.csv"), show_col_ty
 
 # Interactive map
 
-The map below allows toggling between aggregate exposure, manufacturing-only contribution, agriculture-only contribution, and the LISA cluster classification. Click any CZ for a popup with all values.
+The map below lets you switch between four views using the radio buttons in the top-left corner. The views are aggregate exposure, the manufacturing-only contribution, the agriculture-only contribution, and the LISA cluster classification. Click any CZ to open a popup with all the values for that CZ.
 
 ```{r leaflet-toggle}
 #| label: fig-leaflet
@@ -536,27 +536,29 @@ leaflet(cz_ll, options = leafletOptions(minZoom = 3, maxZoom = 10)) |>
 
 ## Interpretation
 
-The combination of cross-sectional null and DiD effect tells a coherent story. Before the tariffs, high-exposure and low-exposure commuting zones were statistically indistinguishable in their labor markets (after controls). During the April–August 2025 announcement-to-implementation window, high-exposure CZs experienced a modest unemployment uptick (+0.11 pp per pp), consistent with firms hedging against uncertainty about supply-chain costs. After implementation, the pattern reversed: high-exposure CZs experienced significantly lower unemployment (−0.30 pp per pp), consistent with the protective effect of tariff barriers on domestic manufacturing employment — as imports became more expensive, manufacturing-heavy CZs absorbed reshored or retained production.
+The cross-sectional null and the DiD effect tell a coherent story together. Before the tariffs, high-exposure and low-exposure commuting zones looked the same in their labor markets after controlling for income, education, and race. During the April to August 2025 window, after the tariffs had been announced but before they took effect, high-exposure CZs experienced a small unemployment increase. This is consistent with firms cutting back on hiring while they wait to see what the new supply-chain costs will look like. After implementation, the pattern reversed. High-exposure CZs experienced significantly lower unemployment than low-exposure CZs. This is consistent with the basic protectionist story. When imports become more expensive, domestic manufacturing becomes relatively more competitive, and manufacturing-heavy CZs absorb the resulting production or hold onto workers they would otherwise have let go.
 
-The bivariate Moran's I result complements this interpretation: high-exposure CZs are not located in chronically distressed regions (*I*_bv = −0.081, *p* = 0.005), so they had healthy regional labor markets capable of absorbing the post-implementation conditions.
+The bivariate Moran's I result fits this interpretation. Because high-exposure CZs are not located near chronically distressed regions, their regional environments were healthy enough to absorb the post-implementation conditions.
 
 ## Limitations
 
-1. **Policy design selection.** The 2025 tariffs were designed to protect domestic manufacturing employment, so the DiD partially measures "the effect of a policy designed to help manufacturing employment". The estimate captures the policy's intended mechanism — it does not validate tariffs as a general welfare policy.
+There are six things worth flagging about the analysis.
 
-2. **Short post-implementation window.** Only seven months of post-August data enter the analysis. Longer-run effects (consumer price pass-through, trade retaliation, supply-chain disruption) may not yet have manifested.
+First, the 2025 tariffs were designed to protect domestic manufacturing employment. The DiD partially measures the effect of a policy designed to help manufacturing employment, so the estimate captures the intended mechanism rather than validating tariffs as a general welfare policy.
 
-3. **The February 2026 *Learning Resources v. Trump* ruling** is not included as a separate event window. The decision was issued in February 2026; with only one usable post-ruling month in the panel, a separate DiD interaction would have essentially zero statistical power. A re-analysis with 6+ months of post-ruling data is recommended.
+Second, the post-implementation window is short. Only seven months of post-August data enter the analysis. Longer-run effects like consumer price pass-through, trade retaliation, and supply-chain disruption may not have shown up yet.
 
-4. **Concurrent policy changes** (Federal Reserve monetary policy, immigration enforcement) are absorbed by the date fixed effects only to the extent that they affect all CZs equally.
+Third, the February 2026 *Learning Resources v. Trump* ruling is not included as a separate event. The decision was issued in February 2026 itself, so the panel only has one usable post-ruling month. A DiD interaction on a one-month window would have essentially no statistical power. A re-analysis with six or more months of post-ruling data would be the right way to handle this.
 
-5. **Effective vs statutory tariff rates.** The exposure measure uses effective rates (Duties ÷ CIF), reflecting both policy and firm adaptive responses (exemptions, substitution).
+Fourth, other concurrent policy changes like Federal Reserve monetary policy and immigration enforcement are only absorbed by the date fixed effects to the extent they affect all CZs equally. If they hit some CZs harder than others in ways correlated with exposure, that could bias the estimate.
 
-6. **HS-NAICS mapping.** The chapter-based correspondence is equivalent to the official Census HS-10 → NAICS-6 concordance at NAICS-2 but coarser at finer industry resolutions.
+Fifth, the exposure measure uses effective tariff rates (Duties divided by CIF). This reflects both the policy and how firms responded to it through exemptions and substitution. The statutory rate change is a cleaner measure of the policy itself but a worse measure of what businesses actually paid.
+
+Sixth, at finer industry resolutions than NAICS-2, the chapter-based HS to NAICS rule used here would matter more and the full Census HS-10 to NAICS-6 concordance would be the right tool.
 
 ## Future work
 
-Three extensions are natural next steps. **First**, a re-run with 6+ months of post-Feb-2026 data would identify the effect of the *Learning Resources* ruling and complete the prof's three-phase event-study design. **Second**, a spatial panel error model (or Conley spatial standard errors) would correct DiD standard errors for residual spatial autocorrelation that cluster-robust SEs do not address. **Third**, applying the Callaway-Sant'Anna continuous-treatment DiD estimator [@callaway2024continuous] would provide a frontier-econometrics robustness check on the TWFE specification.
+There are three natural extensions. The first is identifying the effect of the *Learning Resources* ruling once enough post-ruling data is available, which would complete the three-phase event study the professor originally suggested. The second is a spatial panel error model, or alternatively Conley spatial standard errors, to correct DiD standard errors for the residual spatial autocorrelation that the cluster-robust SEs in this report do not address. The third is the Callaway-Sant'Anna continuous-treatment DiD estimator [@callaway2024continuous], which would be a frontier-econometrics robustness check on the two-way fixed effects specification used here.
 
 # Reproducibility
 
