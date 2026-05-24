@@ -167,44 +167,78 @@ m <- m |>
 # Legend (only one shown — we use the aggregate one as the default)
 m <- m |>
   addLegend(
-    pal      = pal_total,
-    values   = cz_ll$exposure_pp,
-    title    = "Aggregate<br>exposure (pp)",
-    position = "bottomright",
-    group    = "Aggregate exposure"
+    pal       = pal_total,
+    values    = cz_ll$exposure_pp,
+    title     = "Aggregate<br>exposure (pp)",
+    position  = "bottomright",
+    group     = "Aggregate exposure",
+    className = "info legend legend-agg"
   ) |>
   addLegend(
-    pal      = pal_mfg,
-    values   = cz_ll$expo_mfg_pp,
-    title    = "Manufacturing<br>contribution (pp)",
-    position = "bottomright",
-    group    = "Manufacturing only"
+    pal       = pal_mfg,
+    values    = cz_ll$expo_mfg_pp,
+    title     = "Manufacturing<br>contribution (pp)",
+    position  = "bottomright",
+    group     = "Manufacturing only",
+    className = "info legend legend-mfg"
   ) |>
   addLegend(
-    pal      = pal_ag,
-    values   = cz_ll$expo_ag_pp,
-    title    = "Agriculture<br>contribution (pp)",
-    position = "bottomright",
-    group    = "Agriculture only"
+    pal       = pal_ag,
+    values    = cz_ll$expo_ag_pp,
+    title     = "Agriculture<br>contribution (pp)",
+    position  = "bottomright",
+    group     = "Agriculture only",
+    className = "info legend legend-ag"
   ) |>
   addLegend(
-    colors   = lisa_palette,
-    labels   = lisa_levels,
-    title    = "LISA cluster",
-    position = "bottomright",
-    group    = "LISA clusters"
+    colors    = lisa_palette,
+    labels    = lisa_levels,
+    title     = "LISA cluster",
+    position  = "bottomright",
+    group     = "LISA clusters",
+    className = "info legend legend-lisa"
   )
 
-# Layer-toggle control — exclusive choice (radio buttons) for the choropleths
+# Layer-toggle control — exclusive choice (radio buttons) for the choropleths.
+# Position top-LEFT so it doesn't share a column with the legends (bottom-right).
 m <- m |>
   addLayersControl(
     baseGroups    = c("Aggregate exposure", "Manufacturing only",
                       "Agriculture only", "LISA clusters"),
     overlayGroups = NULL,
     options       = layersControlOptions(collapsed = FALSE),
-    position      = "topright"
+    position      = "topleft"
   ) |>
-  hideGroup(c("Manufacturing only", "Agriculture only", "LISA clusters"))
+  hideGroup(c("Manufacturing only", "Agriculture only", "LISA clusters")) |>
+  # leaflet R's addLegend(group=...) only auto-toggles for OVERLAY groups,
+  # not BASE groups (radio buttons). Wire up a small JS hook that hides all
+  # legends and shows only the one matching the active base layer.
+  htmlwidgets::onRender("
+    function(el, x) {
+      var map = this;
+      var legendMap = {
+        'Aggregate exposure': 'legend-agg',
+        'Manufacturing only': 'legend-mfg',
+        'Agriculture only':   'legend-ag',
+        'LISA clusters':      'legend-lisa'
+      };
+      function showOnly(activeName) {
+        Object.values(legendMap).forEach(function(cls) {
+          el.querySelectorAll('.' + cls).forEach(function(node) {
+            node.style.display = 'none';
+          });
+        });
+        var cls = legendMap[activeName];
+        if (cls) {
+          el.querySelectorAll('.' + cls).forEach(function(node) {
+            node.style.display = '';
+          });
+        }
+      }
+      showOnly('Aggregate exposure');
+      map.on('baselayerchange', function(e) { showOnly(e.name); });
+    }
+  ")
 
 # ---- 6. Save standalone HTML ------------------------------------------
 out <- here("output", "figures", "tariff_exposure_interactive.html")
