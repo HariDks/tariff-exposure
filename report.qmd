@@ -20,6 +20,9 @@ execute:
   echo: true
   warning: false
   message: false
+bibliography: references.bib
+citation-location: document
+link-citations: true
 ---
 
 ```{r setup}
@@ -51,7 +54,7 @@ I construct a county-level shift-share index of exposure to the 2025 U.S. tariff
 
 In April 2025 the U.S. announced a sweeping new tariff regime; the tariffs took effect in August 2025; and in February 2026 the Supreme Court decided *Learning Resources, Inc. v. Trump*, partially constraining the executive's tariff authority. Because tariffs are administered at the product level (Harmonized System codes) while economic activity is distributed at the geographic level, the policy translates into a spatial labor-market shock — local economies dominated by tariffed industries face larger effective rate changes than those dominated by services or non-tariffed activities.
 
-This report builds a county-level **tariff exposure index** following the Bartik-style shift-share methodology standard in trade economics [@autor2013china], then asks whether geographic variation in exposure predicts labor-market outcomes. The analysis is conducted primarily at the **commuting-zone level** because labor markets cross county boundaries, and re-validated at the county level as a robustness check on the unit of analysis (the Modifiable Areal Unit Problem).
+This report builds a county-level **tariff exposure index** following the Bartik-style shift-share methodology [@bartik1991] standard in modern trade economics [@autor2013china], then asks whether geographic variation in exposure predicts labor-market outcomes. The analysis is conducted primarily at the **commuting-zone level** because labor markets cross county boundaries, and re-validated at the county level as a robustness check on the unit of analysis (the Modifiable Areal Unit Problem).
 
 The empirical strategy proceeds in two stages. First, a **cross-sectional spatial regression** of pre-tariff unemployment on exposure tests whether high-exposure regions differed from low-exposure regions before the policy took effect — a balance test for the panel design. Second, a **two-way fixed effects difference-in-differences** on monthly unemployment from January 2024 through February 2026 estimates the differential effect of the announcement and implementation events on local labor markets.
 
@@ -120,13 +123,13 @@ hs_to_naics <- function(hts6) {
 
 ## Why commuting zones
 
-The primary analysis is conducted at the commuting-zone level (n = 564) rather than the county level (n = 3,109). Counties are administrative boundaries; workers who live in one county but commute to another have their tariff exposure mismeasured at county level. Commuting zones group counties whose residents and workplaces are tied by commuting flows, so the within-CZ workplace-vs-residence distinction largely stops mattering. Additionally, BLS suppresses sector-level employment in small counties (median county sector coverage = 85.5% in our 2024 Q4 extract); CZ aggregation reduces this to 89.6%.
+The primary analysis is conducted at the commuting-zone level (n = 564) rather than the county level (n = 3,109). Counties are administrative boundaries; workers who live in one county but commute to another have their tariff exposure mismeasured at county level. Commuting zones [@tolbert1996] group counties whose residents and workplaces are tied by commuting flows, so the within-CZ workplace-vs-residence distinction largely stops mattering. Additionally, BLS suppresses sector-level employment in small counties (median county sector coverage = 85.5% in our 2024 Q4 extract); CZ aggregation reduces this to 89.6%.
 
 A county-level replication of the cross-sectional regression is reported as a robustness check in @sec-county-robustness.
 
 ## Spatial autocorrelation
 
-I test for spatial dependence using Global Moran's I with row-standardised Queen-contiguity spatial weights and Monte Carlo permutation inference (999 permutations). Local clustering is identified using Local Moran's I (LISA). A bivariate Moran's I is also computed to test whether the geography of exposure overlaps spatially with the geography of unemployment.
+Spatial data violates the independence assumption of classical statistics — observations near each other tend to be correlated [@tobler1970]. I therefore test for spatial dependence using Global Moran's I with row-standardised Queen-contiguity spatial weights and Monte Carlo permutation inference (999 permutations). Local clustering is identified using Local Moran's I [LISA; @anselin1995]. A bivariate Moran's I is also computed to test whether the geography of exposure overlaps spatially with the geography of unemployment.
 
 ```{r build-W}
 #| label: build-W
@@ -553,7 +556,7 @@ The bivariate Moran's I result complements this interpretation: high-exposure CZ
 
 ## Future work
 
-Three extensions are natural next steps. **First**, a re-run with 6+ months of post-Feb-2026 data would identify the effect of the *Learning Resources* ruling and complete the prof's three-phase event-study design. **Second**, a spatial panel error model (or Conley spatial standard errors) would correct DiD standard errors for residual spatial autocorrelation that cluster-robust SEs do not address. **Third**, applying the Callaway-Sant'Anna continuous-treatment DiD estimator would provide a frontier-econometrics robustness check on the TWFE specification.
+Three extensions are natural next steps. **First**, a re-run with 6+ months of post-Feb-2026 data would identify the effect of the *Learning Resources* ruling and complete the prof's three-phase event-study design. **Second**, a spatial panel error model (or Conley spatial standard errors) would correct DiD standard errors for residual spatial autocorrelation that cluster-robust SEs do not address. **Third**, applying the Callaway-Sant'Anna continuous-treatment DiD estimator [@callaway2024continuous] would provide a frontier-econometrics robustness check on the TWFE specification.
 
 # Reproducibility
 
