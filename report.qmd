@@ -75,6 +75,20 @@ data_sources <- tribble(
 kable(data_sources)
 ```
 
+# Data cleaning
+
+The analysis pulls from six data sources and combines them at the commuting-zone level. Each source needed its own cleaning steps before it could be joined into the analysis dataset.
+
+The QCEW 2024 quarterly file from BLS has about 6 million rows at many different aggregation levels mixed together. I filtered to `agglvl_code = 74` (county by NAICS sector, by ownership type) for the numerator of the employment share, and `agglvl_code = 70` (county total covered employment, all ownerships) for the denominator. Sector employment was summed across the four ownership types (Federal, State, Local, Private) to get total covered employment per county-sector. I dropped NAICS code 99 (Unclassified) because it does not map to any tariff-relevant sector. BLS suppresses sector employment counts in small counties to protect employer confidentiality, so I re-normalized the sector shares within each county to sum to exactly 1, which treats the suppression-induced gap as missing at random within the observed industry mix.
+
+The PIIE WP25-13 replication file holds HS-6 monthly Calculated Duties and CIF Import Values across 5,509 distinct product codes for both 2025 and 2026. I computed the effective tariff rate for each HS-6 code as the duties divided by the CIF value, separately for 2025 Q1 and 2026 Q1. The tariff change at the HS-6 level is post minus pre in percentage points. To aggregate to NAICS-2 sectors I used the HS chapter rule, then computed the import-value-weighted average rate change within each sector.
+
+County polygons came from Census TIGER through tigris. I dropped Alaska, Hawaii, and the U.S. territories (state FIPS codes 02, 15, 60, 66, 69, 72, 78) because USDA commuting zones do not cover them consistently. The remaining 3,109 counties were reprojected to Albers Equal-Area Conic (EPSG:5070) because area-preserving projection is required for the share-weighting and the spatial neighborhood calculations. Commuting zones were built by dissolving counties through the USDA 2020 crosswalk: counties were joined to their CZ ID and `sf::summarise()` unioned the geometries within each group.
+
+The BLS LAUS time-series file is 332 MB of pipe-delimited text. I filtered to county-level series (area_type_code F), kept only monthly observations (period not M13), and pulled the three measures I needed: unemployment rate (measure code 03), unemployment count (04), and labor force (06). I dropped October 2025 because only 78 of 3,221 counties reported in the source for that month (a real data gap in the BLS release, not a pipeline bug). I also dropped March 2026 because only 3 counties were in the preliminary release. County-month observations were aggregated to CZ-month by summing the count variables and recomputing the unemployment rate as total unemployed divided by total labor force within each CZ-month cell.
+
+ACS county estimates for 2019-2023 came through the tidycensus API. Aggregating from counties to commuting zones requires care: rate variables (unemployment rate, percent college-educated, percent white) were recomputed from the raw counts rather than averaged across counties. Median household income was aggregated as a population-weighted average, dropping county observations with missing income before computing the weighted mean to keep the numerator and denominator aligned.
+
 # Methodology
 
 ## Building the exposure index
